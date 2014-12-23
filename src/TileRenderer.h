@@ -35,6 +35,7 @@ class TileRenderer
 {
 public:
   TileRenderer(int col_size, int row_size);
+  ~TileRenderer();
 
   void InitRenderer(std::vector<std::vector<Tile>> const& tiles);
   void RenderTiles();

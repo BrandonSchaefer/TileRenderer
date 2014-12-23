@@ -38,8 +38,14 @@ TileRenderer::TileRenderer(int col_size, int row_size)
   , row_size_(row_size)
   , sprite_sheet_(LoadTexture(SPRITE_SHEET_PATH))
   , vertex_data_(new VertexData[row_size_ * col_size_ * VERTEX_TILE_SIZE])
-  , indices_(new GLushort[      row_size_ * col_size_ * INDICE_TILE_SIZE])
+  , indices_(    new GLushort  [row_size_ * col_size_ * INDICE_TILE_SIZE])
 {
+}
+
+TileRenderer::~TileRenderer()
+{
+  delete[] vertex_data_;
+  delete[] indices_;
 }
 
 // Check each neighbours to see if they are different types. If they are
@@ -80,8 +86,6 @@ int TileRenderer::GetBinaryFormTileNeighbours(std::vector<std::vector<Tile>> con
 // FIXME Look at reducing the size of this functions...clean up!
 void TileRenderer::InitRenderer(std::vector<std::vector<Tile>> const& tiles)
 {
-  glBindTexture(GL_TEXTURE_2D, sprite_sheet_.id);
-
   int index     = 0;
   int vbo_index = 0;
 
@@ -156,6 +160,8 @@ void TileRenderer::InitRenderer(std::vector<std::vector<Tile>> const& tiles)
 
 void TileRenderer::RenderTiles()
 {
+  glBindTexture(GL_TEXTURE_2D, sprite_sheet_.id);
+
   vbo_.DrawVBOs();
 }
 

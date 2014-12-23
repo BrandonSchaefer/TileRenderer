@@ -99,6 +99,11 @@ GLint LoadProgram(char const* vertex_src, char const* fragment_src)
     return 0;
   }
 
+  glDetachShader(program, vertex);
+  glDetachShader(program, fragment);
+  glDeleteShader(vertex);
+  glDeleteShader(fragment);
+
   return program;
 }
 
