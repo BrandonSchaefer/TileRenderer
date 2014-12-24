@@ -26,15 +26,32 @@
 #include "Shaders.h"
 #include "TileWorld.h"
 
+#include "TextureLoader.h"
+
+#include "config.h"
+
+// FIXME Create a simple Ortho Matrix class...
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 namespace tile_renderer
 {
 
 namespace
 {
+  // FIXME Move me into the UI parts when doing that
+  char const UI_BACKGROUND_PATH[] = RESDIR"/ui_background.png";
+
   int const WIDTH  = 800;
   int const HEIGHT = 600;
   int const FRAMES_PER_SECOND = 60;
   float const ONE_SECOND      = 1000.0f;
+
+  int const CAMERA_WIDTH  = 512;
+  int const CAMERA_HEIGHT = 512;
 
   float const MOVE = 5.0f;
 }
@@ -71,7 +88,31 @@ void StartGame()
 
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-  TileWorld t_world(WIDTH, HEIGHT);
+  // main off set so theres room for a UI
+  int offset_y = (HEIGHT - CAMERA_HEIGHT)/2;
+  int offset_x = WIDTH - CAMERA_WIDTH - offset_y;
+  Rect camera = {offset_x, offset_y, CAMERA_WIDTH, CAMERA_HEIGHT};
+
+  TileWorldSettings settings;
+  settings.screen_width  = WIDTH;
+  settings.screen_height = HEIGHT;
+  settings.camera        = {offset_x, offset_y, CAMERA_WIDTH, CAMERA_HEIGHT};
+  settings.offset_x      = offset_x;
+  settings.offset_y      = offset_y;
+
+  TileWorld t_world(settings);
+
+
+  GLfloat vertices[] = {
+                            0.0f,   0.0f, 0.0f,   0.0f, 0.0f, // x y
+                            0.0f,   600.0f, 0.0f, 0.0f, 1.0f, // x h
+                            800.0f, 600.0f, 0.0f, 1.0f, 1.0f, // w h
+                            800.0f, 0.0f, 0.0f,   1.0f, 0.0f, // w y
+                        };
+
+  GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+
+  Texture ui_background = LoadTexture(UI_BACKGROUND_PATH);
 
   tile_renderer::SDLTimer fps;
 
@@ -103,6 +144,7 @@ void StartGame()
         }
         case SDL_MOUSEMOTION:
         {
+          t_world.HandleMouseMove(event.button.x, event.button.y);
           if (mouse_down)
             t_world.HandleMouseClick(event.button.x, event.button.y);
           break;
@@ -124,25 +166,39 @@ void StartGame()
       }
     }
 
-    // FIXME Move this to a different class.
-    // Think about only updating this when sometings changed!
-    /*
-    if (trans_x < 0)
-      trans_x -= diff_x;
-    if (trans_y < 0)
-      trans_y -= diff_y;
-
-    if (trans_x + WIDTH * zoom > 32 * 128)
-      trans_x -= diff_x;
-    if (trans_y + WIDTH * zoom > 32 * 128)
-      trans_y -= diff_y;
-
-    zoom += zoom_diff;
-    */
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     t_world.Draw();
+
+    // Disable the VBO buffers so we can avoid trashing that data
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindTexture(GL_TEXTURE_2D, ui_background.id);
+
+    glm::mat4 mat_mvp;
+
+    // Default ortho so we dont move the window around
+    mat_mvp = glm::ortho(0.0f, (float)WIDTH,
+                         0.0f, (float)HEIGHT,
+                         -1.0f, 1.0f);
+
+    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mat_mvp));
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT,
+                          GL_FALSE, sizeof(GLfloat) * 5, vertices);
+    glVertexAttribPointer(1, 2, GL_FLOAT,
+                          GL_FALSE, sizeof(GLfloat) * 5, &vertices[3]);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+
+    glDisable(GL_BLEND);
 
     SDL_GL_SwapWindow(window);
 

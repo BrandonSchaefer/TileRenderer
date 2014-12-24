@@ -64,6 +64,9 @@ void VertexBufferObject::DrawVBOs()
 {
   uintptr_t offset = 0;
 
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
+
   glEnableVertexAttribArray(VERT_INDEX);
   glEnableVertexAttribArray(TEX_INDEX);
 

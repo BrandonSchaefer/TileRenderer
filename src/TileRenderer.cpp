@@ -17,6 +17,7 @@
 */
 
 #include "TileRenderer.h"
+#include "TextureLoader.h"
 
 #include "config.h"
 
@@ -58,21 +59,21 @@ int TileRenderer::GetBinaryFormTileNeighbours(std::vector<std::vector<Tile>> con
 
   TileType type = tiles[p.x][p.y].Type();
 
-  // Right
-  if (p.x + 1 < col_size_ && tiles[p.x + 1][p.y].Type() != type)
-    rlud[0] = 1;
-
-  // Left
-  if (p.x - 1 >= 0 && tiles[p.x - 1][p.y].Type() != type)
-    rlud[1] = 1;
-
   // Up
-  if (p.y + 1 < row_size_ && tiles[p.x][p.y + 1].Type() != type)
+  if (p.x + 1 < col_size_ && tiles[p.x + 1][p.y].Type() != type)
     rlud[2] = 1;
 
   // Down
-  if (p.y - 1 >= 0 && tiles[p.x][p.y - 1].Type() != type)
+  if (p.x - 1 >= 0 && tiles[p.x - 1][p.y].Type() != type)
     rlud[3] = 1;
+
+  // Right
+  if (p.y + 1 < row_size_ && tiles[p.x][p.y + 1].Type() != type)
+    rlud[0] = 1;
+
+  // Left
+  if (p.y - 1 >= 0 && tiles[p.x][p.y - 1].Type() != type)
+    rlud[1] = 1;
 
   // Turn rlud from a binary number to a dec.
   return 8 * rlud[0] +

@@ -23,7 +23,6 @@
 
 #include "Tile.h"
 #include "Texture.h"
-#include "TextureLoader.h"
 #include "VertexBufferObject.h"
 #include "VertexData.h"
 #include <vector>

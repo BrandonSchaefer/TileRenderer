@@ -31,7 +31,7 @@ namespace tile_renderer
 class TileTerrain
 {
 public:
-  TileTerrain(int row_size, int col_size);
+  TileTerrain(int row_size, int col_size, Rect const& camera);
 
   void HandleMouseClick(int x, int y);
 

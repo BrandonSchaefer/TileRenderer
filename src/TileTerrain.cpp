@@ -31,27 +31,28 @@ namespace
   TileBreed const DIRT_B  = {TileType::DIRT,  1};
 }
 
-TileTerrain::TileTerrain(int row_size, int col_size)
+TileTerrain::TileTerrain(int row_size, int col_size, Rect const& camera)
   : row_size_ (row_size)
   , col_size_(col_size)
   , renderer_(col_size, row_size)
   , tiles_(col_size, std::vector<Tile>(row_size))
 {
   int tile_size = TILE_SIZE;
-  int y_size = 0;
-  int x_size = 0;
+
+  int x_size = camera.x();
+  int y_size = camera.y();
 
   for (int col = 0; col < col_size_; col++)
   {
     for (int row = 0; row < row_size_; row++)
     {
-      Point p = {y_size, x_size};
+      Point p = {x_size, y_size};
       tiles_[col][row] = Tile(GRASS_B, p);
       x_size += tile_size;
     }
 
     y_size += tile_size;
-    x_size = 0;
+    x_size  = camera.x();
   }
 
   renderer_.InitRenderer(tiles_);

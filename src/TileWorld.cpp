@@ -35,19 +35,21 @@ namespace tile_renderer
 
 namespace
 {
-  int const MOVE = 5;
+  int const MOVE = 8;
 
   int const TILE_SIZE = 32;
-  int const COL_SIZE  = 128;
-  int const ROW_SIZE  = 128;
+  int const COL_SIZE  = 64;
+  int const ROW_SIZE  = 64;
 }
 
-TileWorld::TileWorld(int screen_width, int screen_height)
-  : terrain_(ROW_SIZE, COL_SIZE)
-  , screen_width_ (screen_width)
-  , screen_height_(screen_height)
-  , camera_rect_({0, 0, screen_width_, screen_height_})
-  , world_rect_ ({0, 0, COL_SIZE * TILE_SIZE, ROW_SIZE * TILE_SIZE})
+TileWorld::TileWorld(TileWorldSettings const& settings)
+  : camera_rect_(settings.camera)
+  , world_rect_ ({settings.offset_x, settings.offset_y,
+                  COL_SIZE * TILE_SIZE + settings.offset_x,
+                  ROW_SIZE * TILE_SIZE + settings.offset_y}) 
+  , terrain_(ROW_SIZE, COL_SIZE, camera_rect_)
+  , screen_width_ (settings.screen_width)
+  , screen_height_(settings.screen_height)
   , trans_x_(0.0f)
   , trans_y_(0.0f)
   , diff_x_(0.0f)
@@ -57,11 +59,27 @@ TileWorld::TileWorld(int screen_width, int screen_height)
 {
 }
 
+void TileWorld::UpdateCameraMoving()
+{
+  camera_rect_.SetX(camera_rect_.x() + diff_x_);
+  camera_rect_.SetY(camera_rect_.y() + diff_y_);
+
+  if (MoveWasInvalid())
+  {
+    camera_rect_.SetX(camera_rect_.x() - diff_x_);
+    camera_rect_.SetY(camera_rect_.y() - diff_y_);
+  }
+
+  trans_x_ = world_rect_.x() - camera_rect_.x();
+  trans_y_ = world_rect_.y() - camera_rect_.y();
+}
+
 void TileWorld::Draw()
 {
-  trans_x_ += diff_x_;
-  trans_y_ += diff_y_;
-  zoom_    += diff_zoom_;
+  UpdateCameraMoving();
+
+  if (zoom_ + diff_zoom_ > 0.0f)
+    zoom_    += diff_zoom_;
 
   glm::mat4 mat_mvp, mat_persp, mat_model;
 
@@ -71,11 +89,10 @@ void TileWorld::Draw()
                        -1.0f, 1.0f);
 
   // MOVE X/Y
-  mat_mvp = glm::translate(mat_mvp, glm::vec3(-trans_x_, -trans_y_, 0.0f));
+  mat_mvp = glm::translate(mat_mvp, glm::vec3(trans_x_, trans_y_, 0.0f));
 
   // SET MATRIX
   glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mat_mvp));
-
 
   terrain_.Draw();
 }
@@ -140,11 +157,15 @@ void TileWorld::HandleKeyDown(int keysym)
 
 void TileWorld::HandleMouseClick(int x, int y)
 {
-  // FIXME Use the dam camera! // TODO
-  int opengl_x = trans_x_ + x + camera_rect_.x();
-  int opengl_y = screen_height_ - (y + camera_rect_.y() - trans_y_);
+  int opengl_x = x - trans_x_;
+  int opengl_y = screen_height_ - (y + trans_y_);
 
   terrain_.HandleMouseClick(opengl_x, opengl_y);
+}
+
+void TileWorld::HandleMouseMove(int x, int y)
+{
+  // TODO Figure out how to pan the camera when the mouse hits the edge of the camera
 }
 
 void TileWorld::MoveCamera(Directions const& direction)
@@ -184,7 +205,7 @@ void TileWorld::MoveCameraLeft()
 
 void TileWorld::MoveCameraUp()
 {
-  camera_rect_.SetY(camera_rect_.y() - MOVE);
+  camera_rect_.SetY(camera_rect_.y() + MOVE);
 
   if (MoveWasInvalid())
     MoveCameraDown();
@@ -192,7 +213,7 @@ void TileWorld::MoveCameraUp()
 
 void TileWorld::MoveCameraDown()
 {
-  camera_rect_.SetY(camera_rect_.y() + MOVE);
+  camera_rect_.SetY(camera_rect_.y() - MOVE);
 
   if (MoveWasInvalid())
     MoveCameraUp();
@@ -202,8 +223,8 @@ bool TileWorld::MoveWasInvalid() const
 {
   if (camera_rect_.x() < world_rect_.x() ||
       camera_rect_.y() < world_rect_.y() ||
-      camera_rect_.x() + camera_rect_.width() > world_rect_.x() + world_rect_.width() ||
-      camera_rect_.y() + camera_rect_.height() > world_rect_.y() + world_rect_.height())
+      camera_rect_.x() + camera_rect_.width()  > world_rect_.width() ||
+      camera_rect_.y() + camera_rect_.height() > world_rect_.height())
   {
     return true;
   }

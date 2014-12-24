@@ -26,10 +26,21 @@
 namespace tile_renderer
 {
 
+struct TileWorldSettings
+{
+  int screen_width;
+  int screen_height;
+
+  int offset_x;
+  int offset_y;
+
+  Rect camera;
+};
+
 class TileWorld
 {
 public:
-  TileWorld(int screen_width, int screen_height);
+  TileWorld(TileWorldSettings const& settings);
 
   Rect CameraRect() const;
   Rect WorldRect()  const;
@@ -41,24 +52,26 @@ public:
   void HandleKeyUp(int keysym);
   void HandleKeyDown(int keysym);
   void HandleMouseClick(int x, int y);
+  void HandleMouseMove(int x, int y);
 
 private:
   bool MoveWasInvalid() const;
+
+  void UpdateCameraMoving();
 
   void MoveCameraRight();
   void MoveCameraLeft();
   void MoveCameraUp();
   void MoveCameraDown();
 
-  TileTerrain terrain_;
+  int screen_width_;
+  int screen_height_;
 
   Rect camera_rect_;
   Rect world_rect_;
 
-  int screen_width_;
-  int screen_height_;
+  TileTerrain terrain_;
 
-  // FIXME Move over to actually using the Rect/Camera then normlize the Rect to get a trans_x/y
   float trans_x_;
   float trans_y_;
   float diff_x_;
