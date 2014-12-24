@@ -27,6 +27,7 @@
 #include "TileWorld.h"
 
 #include "TextureLoader.h"
+#include "VertexBufferObject.h"
 
 #include "config.h"
 
@@ -103,14 +104,16 @@ void StartGame()
   TileWorld t_world(settings);
 
 
-  GLfloat vertices[] = {
-                            0.0f,   0.0f, 0.0f,   0.0f, 0.0f, // x y
-                            0.0f,   600.0f, 0.0f, 0.0f, 1.0f, // x h
-                            800.0f, 600.0f, 0.0f, 1.0f, 1.0f, // w h
-                            800.0f, 0.0f, 0.0f,   1.0f, 0.0f, // w y
+  VertexData vertices[] = {
+                            {0.0f,   0.0f, 0.0f,   0.0f, 0.0f}, // x y
+                            {0.0f,   600.0f, 0.0f, 0.0f, 1.0f}, // x h
+                            {800.0f, 600.0f, 0.0f, 1.0f, 1.0f}, // w h
+                            {800.0f, 0.0f, 0.0f,   1.0f, 0.0f}, // w y
                         };
 
   GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+
+  vbo.InitVBOs(4, vertices, 6, indices);
 
   Texture ui_background = LoadTexture(UI_BACKGROUND_PATH);
 
@@ -170,10 +173,6 @@ void StartGame()
 
     t_world.Draw();
 
-    // Disable the VBO buffers so we can avoid trashing that data
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     glBindTexture(GL_TEXTURE_2D, ui_background.id);
 
     glm::mat4 mat_mvp;
@@ -185,18 +184,10 @@ void StartGame()
 
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mat_mvp));
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT,
-                          GL_FALSE, sizeof(GLfloat) * 5, vertices);
-    glVertexAttribPointer(1, 2, GL_FLOAT,
-                          GL_FALSE, sizeof(GLfloat) * 5, &vertices[3]);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+    vbo.DrawVBOs();
 
     glDisable(GL_BLEND);
 
