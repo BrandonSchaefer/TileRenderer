@@ -31,12 +31,7 @@
 
 #include "config.h"
 
-// FIXME Create a simple Ortho Matrix class...
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
+#include "OrthoMatrix.h"
 
 namespace tile_renderer
 {
@@ -46,13 +41,13 @@ namespace
   // FIXME Move me into the UI parts when doing that
   char const UI_BACKGROUND_PATH[] = RESDIR"/ui_background.png";
 
-  int const WIDTH  = 800;
-  int const HEIGHT = 600;
+  float const WIDTH  = 800;
+  float const HEIGHT = 600;
   int const FRAMES_PER_SECOND = 60;
   float const ONE_SECOND      = 1000.0f;
 
-  int const CAMERA_WIDTH  = 512;
-  int const CAMERA_HEIGHT = 512;
+  float const CAMERA_WIDTH  = 512;
+  float const CAMERA_HEIGHT = 512;
 
   float const MOVE = 5.0f;
 }
@@ -90,8 +85,8 @@ void StartGame()
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
   // main off set so theres room for a UI
-  int offset_y = (HEIGHT - CAMERA_HEIGHT)/2;
-  int offset_x = WIDTH - CAMERA_WIDTH - offset_y;
+  float offset_y = (HEIGHT - CAMERA_HEIGHT)/2;
+  float offset_x = WIDTH - CAMERA_WIDTH - offset_y;
   Rect camera = {offset_x, offset_y, CAMERA_WIDTH, CAMERA_HEIGHT};
 
   TileWorldSettings settings;
@@ -105,13 +100,13 @@ void StartGame()
 
 
   VertexData vertices[] = {
-                            {0.0f,   0.0f, 0.0f,   0.0f, 0.0f}, // x y
-                            {0.0f,   600.0f, 0.0f, 0.0f, 1.0f}, // x h
-                            {800.0f, 600.0f, 0.0f, 1.0f, 1.0f}, // w h
-                            {800.0f, 0.0f, 0.0f,   1.0f, 0.0f}, // w y
+                            {0.0f,   0.0f, 0.0f,   0.0f, 1.0f}, // x y
+                            {0.0f,   600.0f, 0.0f, 0.0f, 0.0f}, // x h
+                            {800.0f, 600.0f, 0.0f, 1.0f, 0.0f}, // w h
+                            {800.0f, 0.0f, 0.0f,   1.0f, 1.0f}, // w y
                         };
 
-  GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+  GLushort indices[] = {0, 1, 2, 0, 2, 3};
 
   vbo.InitVBOs(4, vertices, 6, indices);
 
@@ -155,12 +150,14 @@ void StartGame()
         case SDL_MOUSEBUTTONDOWN:
         {
           mouse_down = true;
+          t_world.HandleMouseDown(event.button.x, event.button.y);
           t_world.HandleMouseClick(event.button.x, event.button.y);
           break;
         }
         case SDL_MOUSEBUTTONUP:
         {
           mouse_down = false;
+          t_world.HandleMouseUp(event.button.x, event.button.y);
           break;
         }
         case SDL_QUIT:
@@ -175,12 +172,9 @@ void StartGame()
 
     glBindTexture(GL_TEXTURE_2D, ui_background.id);
 
-    glm::mat4 mat_mvp;
+    OrthoMatrix orth_mat(WIDTH, HEIGHT);
 
-    // Default ortho so we dont move the window around
-    mat_mvp = glm::ortho(0.0f, (float)WIDTH,
-                         0.0f, (float)HEIGHT,
-                         -1.0f, 1.0f);
+    glm::mat4 mat_mvp = orth_mat.GetMVPMatrix(0.0f, 0.0f, 1.0f);
 
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mat_mvp));
 

@@ -41,6 +41,12 @@ VertexBufferObject::~VertexBufferObject()
   glDeleteBuffers(1, &ibo_);
 }
 
+void VertexBufferObject::ReBindBuffers()
+{
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
+}
+
 void VertexBufferObject::InitVBOs(GLint num_vert, VertexData* vert_buff,
                                   GLint num_indices, GLushort* indices)
 {
@@ -58,6 +64,14 @@ void VertexBufferObject::InitVBOs(GLint num_vert, VertexData* vert_buff,
                indices, GL_STATIC_DRAW);
 
   num_indices_ = num_indices;
+}
+
+void VertexBufferObject::UpdateVBOData(GLintptr offset, GLsizeiptr size, void const* data)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
+
+  glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 }
 
 void VertexBufferObject::DrawVBOs()

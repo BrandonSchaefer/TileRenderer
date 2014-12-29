@@ -28,11 +28,11 @@ namespace tile_renderer
 
 struct TileWorldSettings
 {
-  int screen_width;
-  int screen_height;
+  float screen_width;
+  float screen_height;
 
-  int offset_x;
-  int offset_y;
+  float offset_x;
+  float offset_y;
 
   Rect camera;
 };
@@ -45,12 +45,13 @@ public:
   Rect CameraRect() const;
   Rect WorldRect()  const;
 
-  void MoveCamera(Directions const& direction);
-
   void Draw();
 
   void HandleKeyUp(int keysym);
   void HandleKeyDown(int keysym);
+
+  void HandleMouseUp(int x, int y);
+  void HandleMouseDown(int x, int y);
   void HandleMouseClick(int x, int y);
   void HandleMouseMove(int x, int y);
 
@@ -59,10 +60,7 @@ private:
 
   void UpdateCameraMoving();
 
-  void MoveCameraRight();
-  void MoveCameraLeft();
-  void MoveCameraUp();
-  void MoveCameraDown();
+  void CheckIfMouseDownAroundTheEdge(int x, int y);
 
   int screen_width_;
   int screen_height_;
@@ -79,6 +77,8 @@ private:
 
   float zoom_;
   float diff_zoom_;
+
+  bool mouse_down_;
 };
 
 } // namespace tile_renderer

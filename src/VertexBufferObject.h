@@ -35,6 +35,10 @@ public:
   void InitVBOs(GLint num_vert, VertexData* vert_buff,
                 GLint num_indices, GLushort* indices);
 
+  void UpdateVBOData(GLintptr offset, GLsizeiptr size, void const* data);
+
+  void ReBindBuffers();
+
   void DrawVBOs();
 
 private:

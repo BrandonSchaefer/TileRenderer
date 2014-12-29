@@ -16,48 +16,40 @@
 * Authored by: Brandon Schaefer <brandontschaefer@gmail.com>
 */
 
-#ifndef TILE_H
-#define TILE_H
+#ifndef TILE_GRID_H
+#define TILE_GRID_H
 
-#include "Point.h"
-#include "TileBreed.h"
+#include "Tile.h"
 
-#include <sigc++/signal.h>
+#include <vector>
 
 namespace tile_renderer
 {
 
-class Tile
+class TileGrid
 {
 public:
-  Tile();
-  Tile(TileBreed const& breed);
-  Tile(TileBreed const& breed, Point const& p);
+  typedef std::vector<std::vector<Tile>>::iterator       Iterator;
+  typedef std::vector<std::vector<Tile>>::const_iterator ConstIterator;
 
-  void SetVBOIndex(int index);
-  int  GetVBOIndex() const;
+  TileGrid(int col_size, int row_size);
 
-  bool Valid() const;
+  Iterator Begin();
+  Iterator End();
 
-  void SetPosition(Point const& position);
-  Point Position() const;
+  ConstIterator Begin() const;
+  ConstIterator End()   const;
 
-  TileType Type() const;
+  void SetTilePosition(Point const& index, Point const& position);
+  void SetTileBreed   (Point const& index, TileBreed const& breed);
 
-  unsigned TextureOffset() const;
+  Tile GetTile(Point const& index) const;
 
-  void ChangeBreed(TileBreed const& breed);
-
-  sigc::signal<void> changed;
-
+  std::vector<std::vector<Tile>> grid_;
 private:
-  Point position_;
-  TileType type_;
-  unsigned texture_offset_;
-  bool hidden_;
-  int vbo_index_;
+  bool InBounds(Point const& index) const;
 };
 
 } // namespace tile_renderer
 
-#endif // TILE_H
+#endif // TILE_GRID_H

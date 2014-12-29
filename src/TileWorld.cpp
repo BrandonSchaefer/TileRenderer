@@ -20,13 +20,7 @@
 
 #include "TileWorld.h"
 
-#define GLM_FORCE_RADIANS
-
-//FIXME Make a simple orth matrix class to stuff all the glm in
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
+#include "OrthoMatrix.h"
 
 #include <stdio.h>
 
@@ -35,11 +29,11 @@ namespace tile_renderer
 
 namespace
 {
-  int const MOVE = 8;
+  int const MOVE = 4;
 
   int const TILE_SIZE = 32;
-  int const COL_SIZE  = 64;
-  int const ROW_SIZE  = 64;
+  int const COL_SIZE  = 128;
+  int const ROW_SIZE  = 128;
 }
 
 TileWorld::TileWorld(TileWorldSettings const& settings)
@@ -56,6 +50,7 @@ TileWorld::TileWorld(TileWorldSettings const& settings)
   , diff_y_(0.0f)
   , zoom_(1.0f)
   , diff_zoom_(0.0f)
+  , mouse_down_(false)
 {
 }
 
@@ -78,20 +73,13 @@ void TileWorld::Draw()
 {
   UpdateCameraMoving();
 
+  OrthoMatrix orth_mat(screen_width_, screen_height_);
+
   if (zoom_ + diff_zoom_ > 0.0f)
     zoom_    += diff_zoom_;
 
-  glm::mat4 mat_mvp, mat_persp, mat_model;
+  glm::mat4 mat_mvp = orth_mat.GetMVPMatrix(trans_x_, trans_y_, zoom_);
 
-  // ZOOM
-  mat_mvp = glm::ortho(0.0f, (float)screen_width_  * zoom_,
-                       0.0f, (float)screen_height_ * zoom_,
-                       -1.0f, 1.0f);
-
-  // MOVE X/Y
-  mat_mvp = glm::translate(mat_mvp, glm::vec3(trans_x_, trans_y_, 0.0f));
-
-  // SET MATRIX
   glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mat_mvp));
 
   terrain_.Draw();
@@ -163,60 +151,84 @@ void TileWorld::HandleMouseClick(int x, int y)
   terrain_.HandleMouseClick(opengl_x, opengl_y);
 }
 
+void TileWorld::HandleMouseUp(int x, int y)
+{
+  mouse_down_ = false;
+  CheckIfMouseDownAroundTheEdge(x, y);
+}
+
+void TileWorld::HandleMouseDown(int x, int y)
+{
+  mouse_down_ = true;
+  CheckIfMouseDownAroundTheEdge(x, y);
+}
+
 void TileWorld::HandleMouseMove(int x, int y)
 {
-  // TODO Figure out how to pan the camera when the mouse hits the edge of the camera
+  CheckIfMouseDownAroundTheEdge(x, y);
 }
 
-void TileWorld::MoveCamera(Directions const& direction)
+// FIXME clean this up a bit... Also should look at changing cursor when at the edge!
+void TileWorld::CheckIfMouseDownAroundTheEdge(int x, int y)
 {
-  switch (direction)
+  if (mouse_down_)
   {
-    case Directions::RIGHT:
-      MoveCameraRight();
-      break;
-    case Directions::LEFT:
-      MoveCameraLeft();
-      break;
-    case Directions::UP:
-      MoveCameraUp();
-      break;
-    case Directions::DOWN:
-      MoveCameraDown();
-      break;
+    float size        = 20;
+    // FIXME Get a correct size from somewhere
+    float border_size = 44;
+
+    // Create edge barriers to detect when a mouse is inside
+    Rect left_edge  = {world_rect_.x() - border_size,
+                       world_rect_.y(),
+                       size + border_size,
+                       camera_rect_.height()};
+
+    Rect right_edge = {world_rect_.x() + camera_rect_.width() - size,
+                       world_rect_.y(),
+                       size + border_size,
+                       camera_rect_.height()};
+
+    Rect up_edge    = {world_rect_.x(),
+                       world_rect_.y() - border_size,
+                       camera_rect_.width(),
+                       size + border_size};
+
+    Rect down_edge  = {world_rect_.x(),
+                       world_rect_.y() + camera_rect_.height() - size,
+                       camera_rect_.width(),
+                       size + border_size};
+
+    if (left_edge.IsPointInside({x, y}))
+    {
+      diff_x_ = -MOVE;
+    }
+    else if (right_edge.IsPointInside({x, y}))
+    {
+      diff_x_ = MOVE;
+    }
+    else
+    {
+      diff_x_ = 0.0f;
+    }
+
+    if (up_edge.IsPointInside({x, y}))
+    {
+      diff_y_ = MOVE;
+    }
+    else if (down_edge.IsPointInside({x, y}))
+    {
+      diff_y_ = -MOVE;
+    }
+    else
+    {
+      diff_y_ = 0.0f;
+    }
   }
-}
-
-void TileWorld::MoveCameraRight()
-{
-  camera_rect_.SetX(camera_rect_.x() + MOVE);
-
-  if (MoveWasInvalid())
-    MoveCameraLeft();
-}
-
-void TileWorld::MoveCameraLeft()
-{
-  camera_rect_.SetX(camera_rect_.x() - MOVE);
-
-  if (MoveWasInvalid())
-    MoveCameraRight();
-}
-
-void TileWorld::MoveCameraUp()
-{
-  camera_rect_.SetY(camera_rect_.y() + MOVE);
-
-  if (MoveWasInvalid())
-    MoveCameraDown();
-}
-
-void TileWorld::MoveCameraDown()
-{
-  camera_rect_.SetY(camera_rect_.y() - MOVE);
-
-  if (MoveWasInvalid())
-    MoveCameraUp();
+  else
+  {
+    diff_x_ = 0.0f;
+    diff_y_ = 0.0f;
+  }
 }
 
 bool TileWorld::MoveWasInvalid() const

@@ -16,48 +16,15 @@
 * Authored by: Brandon Schaefer <brandontschaefer@gmail.com>
 */
 
-#ifndef TILE_H
-#define TILE_H
+#ifndef VECTOR3_H
+#define VECTOR3_H
 
-#include "Point.h"
-#include "TileBreed.h"
-
-#include <sigc++/signal.h>
-
-namespace tile_renderer
-{
-
-class Tile
+// Implement this class
+class Vector3
 {
 public:
-  Tile();
-  Tile(TileBreed const& breed);
-  Tile(TileBreed const& breed, Point const& p);
+  float x, y, z;
 
-  void SetVBOIndex(int index);
-  int  GetVBOIndex() const;
-
-  bool Valid() const;
-
-  void SetPosition(Point const& position);
-  Point Position() const;
-
-  TileType Type() const;
-
-  unsigned TextureOffset() const;
-
-  void ChangeBreed(TileBreed const& breed);
-
-  sigc::signal<void> changed;
-
-private:
-  Point position_;
-  TileType type_;
-  unsigned texture_offset_;
-  bool hidden_;
-  int vbo_index_;
 };
 
-} // namespace tile_renderer
-
-#endif // TILE_H
+#endif // VECTOR3_H

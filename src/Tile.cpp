@@ -22,9 +22,10 @@ namespace tile_renderer
 {
 
 Tile::Tile()
-  : position_({0,0})
+  : position_({-1,-1})
   , type_(TileType::GRASS)
   , texture_offset_(0)
+  , hidden_(false)
   , vbo_index_(0)
 {
 }
@@ -33,6 +34,7 @@ Tile::Tile(TileBreed const& breed)
   : position_({0,0})
   , type_(breed.type)
   , texture_offset_(breed.texture_offset)
+  , hidden_(false)
   , vbo_index_(0)
 {
 }
@@ -41,8 +43,15 @@ Tile::Tile(TileBreed const& breed, Point const& p)
   : position_(p)
   , type_(breed.type)
   , texture_offset_(breed.texture_offset)
+  , hidden_(false)
   , vbo_index_(0)
 {
+}
+
+bool Tile::Valid() const
+{
+  // Cheap way to do this ... think of a better way to check if a default tile is not valid
+  return position_.x != -1;
 }
 
 void Tile::SetVBOIndex(int index)
@@ -53,6 +62,11 @@ void Tile::SetVBOIndex(int index)
 int Tile::GetVBOIndex() const
 {
   return vbo_index_;
+}
+
+void Tile::SetPosition(Point const& position)
+{
+  position_ = position;
 }
 
 Point Tile::Position() const

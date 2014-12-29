@@ -16,68 +16,25 @@
 * Authored by: Brandon Schaefer <brandontschaefer@gmail.com>
 */
 
-#include "Rect.h"
+#include "RendererUtils.h"
 
 namespace tile_renderer
 {
 
-Rect::Rect(float x, float y, float width, float height)
-  : x_(x)
-  , y_(y)
-  , width_ (width)
-  , height_(height)
+void gen_tex_coords(Rect const& s_rect, Vector3 out_tex_coords[4])
 {
+  out_tex_coords[0] = {s_rect.x(),                  s_rect.y() + s_rect.height(), 0};
+  out_tex_coords[1] = {s_rect.x() + s_rect.width(), s_rect.y() + s_rect.height(), 0};
+  out_tex_coords[2] = {s_rect.x() + s_rect.width(), s_rect.y(), 0};
+  out_tex_coords[3] = {s_rect.x(),                  s_rect.y(), 0};
 }
 
-float Rect::x() const
+void gen_vert_coords(Rect const& v_rect, Vector3 out_vert_coords[4])
 {
-  return x_;
+  out_vert_coords[0] = {v_rect.x(),                  v_rect.y(), 0};
+  out_vert_coords[1] = {v_rect.x() + v_rect.width(), v_rect.y(), 0};
+  out_vert_coords[2] = {v_rect.x() + v_rect.width(), v_rect.y() + v_rect.height(), 0};
+  out_vert_coords[3] = {v_rect.x(),                  v_rect.y() + v_rect.height(), 0};
 }
 
-float Rect::y() const
-{
-  return y_;
 }
-
-float Rect::width() const
-{
-  return width_;
-}
-
-float Rect::height() const
-{
-  return height_;
-}
-
-void Rect::SetX(float x)
-{
-  x_ = x;
-}
-
-void Rect::SetY(float y)
-{
-  y_ = y;
-}
-
-void Rect::SetWidth(float width)
-{
-  width_ = width;
-}
-
-void Rect::SetHeight(float height)
-{
-  height_ = height;
-}
-
-bool Rect::IsPointInside(Point const& p)
-{
-  if (p.x >= x_ && p.x < x_ + width_ &&
-      p.y >= y_ && p.y < y_ + height_)
-  {
-    return true;
-  }
-
-  return false;
-}
-
-} // namespace tile_renderer

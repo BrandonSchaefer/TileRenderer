@@ -16,48 +16,27 @@
 * Authored by: Brandon Schaefer <brandontschaefer@gmail.com>
 */
 
-#ifndef TILE_H
-#define TILE_H
+#define GLM_FORCE_RADIANS
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
-#include "Point.h"
-#include "TileBreed.h"
+#include "OrthoMatrix.h"
 
-#include <sigc++/signal.h>
-
-namespace tile_renderer
+OrthoMatrix::OrthoMatrix(int width, int height)
+  : width_ (width)
+  , height_(height)
 {
+}
 
-class Tile
+glm::mat4 OrthoMatrix::GetMVPMatrix(float trans_x, float trans_y, float zoom) const
 {
-public:
-  Tile();
-  Tile(TileBreed const& breed);
-  Tile(TileBreed const& breed, Point const& p);
+  glm::mat4 mat_mvp;
 
-  void SetVBOIndex(int index);
-  int  GetVBOIndex() const;
+  mat_mvp = glm::ortho(0.0f, (float)width_  * zoom,
+                       0.0f, (float)height_ * zoom,
+                       -1.0f, 1.0f);
 
-  bool Valid() const;
+  mat_mvp = glm::translate(mat_mvp, glm::vec3(trans_x, trans_y, 0.0f));
 
-  void SetPosition(Point const& position);
-  Point Position() const;
-
-  TileType Type() const;
-
-  unsigned TextureOffset() const;
-
-  void ChangeBreed(TileBreed const& breed);
-
-  sigc::signal<void> changed;
-
-private:
-  Point position_;
-  TileType type_;
-  unsigned texture_offset_;
-  bool hidden_;
-  int vbo_index_;
-};
-
-} // namespace tile_renderer
-
-#endif // TILE_H
+  return mat_mvp;
+}

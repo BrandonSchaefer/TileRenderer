@@ -21,6 +21,7 @@
 
 #include "Texture.h"
 #include "Tile.h"
+#include "TileGrid.h"
 #include "TileRenderer.h"
 
 #include <vector>
@@ -46,7 +47,8 @@ private:
 
   TileRenderer renderer_;
 
-  std::vector<std::vector<Tile>> tiles_;
+  //std::vector<std::vector<Tile>> tiles_;
+  TileGrid tiles_;
 };
 
 } // namespace tile_renderer

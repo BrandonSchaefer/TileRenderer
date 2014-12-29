@@ -27,25 +27,25 @@ namespace tile_renderer
 class Rect
 {
 public:
-  Rect(int x = 0, int y = 0, int width = 0, int height = 0);
+  Rect(float x = 0, float y = 0, float width = 0, float height = 0);
 
-  int x() const;
-  int y() const;
-  int width() const;
-  int height() const;
+  float x() const;
+  float y() const;
+  float width() const;
+  float height() const;
 
-  void SetX(int x);
-  void SetY(int y);
-  void SetWidth(int width);
-  void SetHeight(int height);
+  void SetX(float x);
+  void SetY(float y);
+  void SetWidth(float width);
+  void SetHeight(float height);
 
   bool IsPointInside(Point const& p);
 
 private:
-  int x_;
-  int y_;
-  int width_;
-  int height_;
+  float x_;
+  float y_;
+  float width_;
+  float height_;
 };
 
 } // namespace tile_renderer

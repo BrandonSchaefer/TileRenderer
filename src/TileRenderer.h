@@ -21,10 +21,14 @@
 
 #include <GLES2/gl2.h>
 
+#include "Rect.h"
 #include "Tile.h"
+#include "TileGrid.h"
 #include "Texture.h"
+#include "Vector3.h"
 #include "VertexBufferObject.h"
 #include "VertexData.h"
+
 #include <vector>
 
 namespace tile_renderer
@@ -36,11 +40,17 @@ public:
   TileRenderer(int col_size, int row_size);
   ~TileRenderer();
 
-  void InitRenderer(std::vector<std::vector<Tile>> const& tiles);
+  void InitRenderer(TileGrid& tiles);
   void RenderTiles();
 
+  void UpdateTileVertexData(TileGrid const& tiles, Point const& index);
+
 private:
-  int GetBinaryFormTileNeighbours(std::vector<std::vector<Tile>> const& tiles, Point const& p);
+  void AddNewTileVertexData(Vector3 const vert_coords[4], Vector3 const tex_coords[4]);
+
+  int GetBinaryFormTileNeighbours(TileGrid const& tiles, Point const& p);
+  Point GetSpritePosition(TileGrid const& tiles, Point const& index);
+  Rect GetSpriteRectangle(TileGrid const& tiles, Point const& index);
 
   int col_size_;
   int row_size_;

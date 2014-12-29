@@ -25,7 +25,11 @@ namespace tile_renderer
 enum TileType
 {
   GRASS = 0,
-  DIRT
+  DIRT,
+  TREE,
+  WATER,
+  MOUNTAIN,
+  FOG_OF_WAR
 };
 
 struct TileBreed
